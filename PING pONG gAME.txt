@@ -1,0 +1,572 @@
+module game(switch,sw,clk,rst,sync_HV,R,G,B,R_push,L_push,An,out);
+output reg [2:0]R,G;
+output reg [1:0]B;
+output reg [1:0]sync_HV =2'b11;
+output reg [3:0] An;
+output reg [6:0] out;
+input [2:0]sw;
+input clk,rst;
+input switch;
+input [1:0] R_push;
+input [1:0] L_push;
+reg [6:0] out1,out2,out3,out4;
+reg [1:0] check=2'd0;
+wire clk_switch;
+wire clkout,clkout_Pad;
+reg [1:0] count2,count1;
+reg [3:0] count3 = 4'd0;
+reg [3:0] count4 = 4'd0;
+reg s_clk=1'b0;
+reg [9:0] a=300;
+reg [9:0] b=230;
+reg [9:0] c=250;
+reg [9:0] d=320;
+35
+reg [9:0] RPa=610;
+reg [9:0] RPb=210;
+reg [9:0] RPc=270;
+reg [9:0] RPd=630;
+reg [9:0] LPa=0;
+reg [9:0] LPb=210;
+reg [9:0] LPc=270;
+reg [9:0] LPd=20;
+reg [9:0] Hcounter =0;
+reg [9:0] Vcounter =0;
+reg temp1=1'b0;
+reg temp3=1'b0;
+reg CT = 0;
+reg display,ball,r_paddle,L_paddle;
+clkdiv #200000 c1(clk,clkout);
+clkdiv #150000 c2(clk,clkout_Pad);
+clkdiv #(5000) c3(clk,clk_switch);
+always @(posedge clk)
+begin
+s_clk=~s_clk;
+end
+always @(posedge s_clk)
+begin
+if(Hcounter>799)
+Hcounter<=1'b0;
+else
+Hcounter<=Hcounter+1'b1;
+end
+always @(posedge s_clk)
+begin
+if(Hcounter==799)
+if(Vcounter>519)
+Vcounter<=1'b0;
+else
+Vcounter<=Vcounter+1'b1;
+end
+always @(Hcounter)
+begin
+if(Hcounter>=656 && Hcounter<=752)
+sync_HV[0]<=1'b0;
+else
+36
+sync_HV[0]<=1'b1;
+end
+always @(Vcounter)
+begin
+if(Vcounter>=490 && Vcounter<=491)
+sync_HV[1]<=1'b0;
+else
+sync_HV[1]<=1'b1;
+end
+always @(posedge s_clk)
+begin
+if(Hcounter<=640 && Vcounter<=480)
+display=1'b1;
+else
+display=1'b1;
+if((Hcounter<=d && Hcounter >=a) &&(Vcounter<=c && Vcounter>=b))
+ball=1'b1;
+else
+ball=1'b0;
+if((Hcounter<=RPd && Hcounter >=RPa) &&(Vcounter<=RPc && Vcounter>=RPb))
+r_paddle=1'b1;
+else
+r_paddle=1'b0;
+if((Hcounter<=LPd && Hcounter >=LPa) && (Vcounter<=LPc && Vcounter>=LPb))
+L_paddle=1'b1;
+else
+L_paddle=1'b0;
+end
+always @(posedge clkout)
+begin
+if(b <= 5 && c <= 25)
+begin
+temp1=1'b0;
+end
+else if (b >= 455 && c >= 475)
+begin
+temp1=1'b1;
+end
+else if (a+20 >= RPa && b+20>=RPb && c-20<=RPc && d+20 >=RPd)
+37
+begin
+temp3=1'b0;
+count3 = count3 + 4'd1;
+if (count3 == 4'd10)
+begin
+count3 = 4'd0;
+end
+end
+else if (a-20<=LPa && b+20>=LPb && c-20<=LPc && d-20<=LPd)
+begin
+temp3=1'b1;
+count4 = count4 + 4'd1;
+if (count4 == 4'd10)
+begin
+count4 = 4'd0;
+end
+end
+if (d >= 620)
+begin
+count1=count1-1;
+a=300;
+b=230;
+c=250;
+d=320;
+if(count1==0)
+begin
+count1=2'd3;
+count2=2'd3;
+count3 = 4'd0;
+count4 = 4'd0;
+end
+end
+else if (a <= 10 )
+begin
+count2=count2-1;
+a=300;
+b=230;
+c=250;
+d=320;
+if(count2==0)
+begin
+count1=2'd3;
+count2=2'd3;
+count3 = 4'd0;
+count4 = 4'd0;
+end
+end
+else
+38
+begin
+count1=count1;
+count2=count2;
+end
+if (switch==1'b1)
+begin
+CT = 1'b0;
+if (temp1==1'b0)
+begin
+if(temp3==1'b1)
+begin
+a=a+1;
+b=b+1;
+c=c+1;
+d=d+1;
+end
+else if(temp3==1'b0)
+begin
+a=a
+-1;
+b=b+1;
+c=c+1;
+d=d
+-1;
+end
+end
+else if(temp1==1'b1)
+begin
+if(temp3==1'b1)
+begin
+a=a+1;
+b=b
+-1;
+c=c
+-1;
+d=d+1;
+end
+else if(temp3==1'b0)
+begin
+a=a
+-1;
+b=b
+-1;
+c=c
+-1;
+d=d
+-1;
+end
+end
+else if(temp3==1'b0)
+begin
+if (temp1==1'b1)
+begin
+a=a
+-1;
+b=b
+-1;
+c=c
+-1;
+d=d
+-1;
+39
+end
+else if (temp1==1'b0)
+begin
+a=a
+-1;
+b=b+1;
+c=c+1;
+d=d
+-1;
+end
+end
+else if(temp3==1'b1)
+begin
+if(temp1==1'b1)
+begin
+a=a+1;
+b=b
+-1;
+c=c
+-1;
+d=d+1;
+end
+else if(temp1==1'b0)
+begin
+a=a+1;
+b=b+1;
+c=c+1;
+d=d+1;
+end
+end
+end
+else if(switch==1'b0)
+begin
+a=300;
+b=230;
+c=250;
+d=320;
+count1=2'd3;
+count2=2'd3;
+count3=4'd0;
+count4=4'd0;
+CT = 1'b1;
+end
+end
+always @(posedge clkout_Pad)
+begin
+if (CT == 1'b1)
+begin
+RPa<=610;
+RPb<=210;
+RPc<=270;
+40
+RPd<=630;
+LPa<=0;
+LPb<=210;
+LPc<=270;
+LPd<=20;
+end
+if (R_push == 2'b10)
+begin
+RPa<=RPa;
+RPb<=RPb+1;
+RPc<=RPc+1;
+RPd<=RPd;
+end
+else if (R_push == 2'b01)
+begin
+RPa<=RPa;
+RPb<=RPb
+-1;
+RPc<=RPc
+-1;
+RPd<=RPd;
+end
+else
+begin
+RPa<=RPa;
+RPb<=RPb;
+RPc<=RPc;
+RPd<=RPd;
+end
+if(R_push == 2'b10 && RPb>=415 && RPc>=475)
+begin
+RPa<=RPa;
+RPb<=RPb;
+RPc<=RPc;
+RPd<=RPd;
+end
+if(R_push == 2'b01 && RPb<=5 && RPc<=65)
+begin
+RPa<=RPa;
+RPb<=RPb;
+RPc<=RPc;
+RPd<=RPd;
+end
+if (L_push == 2'b10)
+begin
+LPa<=LPa;
+LPb<=LPb+1;
+41
+LPc<=LPc+1;
+LPd<=LPd;
+end
+else if (L_push == 2'b01)
+begin
+LPa<=LPa;
+LPb<=LPb-1;
+LPc<=LPc-1;
+LPd<=LPd;
+end
+else
+begin
+LPa<=LPa;
+LPb<=LPb;
+LPc<=LPc;
+LPd<=LPd;
+end
+if(L_push == 2'b10 && LPb>=415 && LPc>=475)
+begin
+LPa<=LPa;
+LPb<=LPb;
+LPc<=LPc;
+LPd<=LPd;
+end
+if(L_push == 2'b01 && LPb<=5 && LPc<=65)
+begin
+LPa<=LPa;
+LPb<=LPb;
+LPc<=LPc;
+LPd<=LPd;
+end
+end
+always @(sw,display)
+begin
+if(display)
+{R,G,B} = { {3{sw[2] | ball | r_paddle}},{3{sw[1] | r_paddle| L_paddle}},{2{sw[0]| ball |
+L_paddle}}};
+else
+{R,G,B}=0;
+end
+always @(count1)
+begin
+case(count1)
+2'd0:
+begin
+42
+out1=7'b1000000;
+end
+2'd1:
+begin
+out1=7'b1111001;
+end
+2'd2:
+begin
+out1=7'b0100100;
+end
+2'd3:
+begin
+out1=7'b0110000;
+end
+endcase
+end
+always @(count2)
+begin
+case(count2)
+2'd0:
+begin
+out2=7'b1000000;
+end
+2'd1:
+begin
+out2=7'b1111001;
+end
+2'd2:
+begin
+out2=7'b0100100;
+end
+2'd3:
+begin
+out2=7'b0110000;
+end
+endcase
+end
+always @(count3)
+begin
+case(count3)
+4'd0:
+begin
+out3=7'b1000000;
+end
+4'd1:
+begin
+out3=7'b1111001;
+end
+4'd2:
+43
+begin
+out3=7'b0100100;
+end
+4'd3:
+begin
+out3=7'b0110000;
+end
+4'd4:
+begin
+out3=7'b0011001;
+end
+4'd5:
+begin
+out3=7'b0010010;
+end
+4'd6:
+begin
+out3=7'b0000010;
+end
+4'd7:
+begin
+out3=7'b1111000;
+end
+4'd8:
+begin
+out3=7'b0000000;
+end
+4'd9:
+begin
+out3=7'b0011000;
+end
+endcase
+end
+always @(count4)
+begin
+case(count4)
+4'd0:
+begin
+out4=7'b1000000;
+end
+4'd1:
+begin
+out4=7'b1111001;
+end
+4'd2:
+begin
+out4=7'b0100100;
+end
+44
+4'd3:
+begin
+out4=7'b0110000;
+end
+4'd4:
+begin
+out4=7'b0011001;
+end
+4'd5:
+begin
+out4=7'b0010010;
+end
+4'd6:
+begin
+out4=7'b0000010;
+end
+4'd7:
+begin
+out4=7'b1111000;
+end
+4'd8:
+begin
+out4=7'b0000000;
+end
+4'd9:
+begin
+out4=7'b0011000;
+end
+endcase
+end
+always @(posedge clk_switch)
+begin if(check==2'd0)
+begin
+An[0]=0;
+An[1]=1;
+An[2]=1;
+An[3]=1;
+out=out1;
+check=2'd1;
+end
+else if(check==2'd1)
+begin
+An[0]=1;
+An[1]=0;
+An[2]=1;
+An[3]=1;
+check=2'd2;
+out=out2;
+end
+45
+else if(check==2'd2)
+begin
+An[0]=1;
+An[1]=1;
+An[2]=0;
+An[3]=1;
+out=out3;
+check=2'd3;
+end
+else if(check==2'd3)
+begin
+An[0]=1;
+An[1]=1;
+An[2]=1;
+An[3]=0;
+check=2'd0;
+out=out4;
+end
+end
+endmodule
+CLK DIVIDER:
+timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company:
+// Engineer:
+//
+// Create Date: 08:44:17 01/18/2024
+// Design Name:
+// Module Name: CLK1
+// Project Name:
+// Target Devices:
+// Tool versions:
+// Description:
+//
+// Dependencies:
+//
+// Revision:
+// Revision 0.01
+- File Created
+// Additional Comments:
+//
+//////////////////////////////////////////////////////////////////////////////////
+module clkdiv(clk,clkout);
+parameter dividefactor = 250000;
+input clk;
+output reg clkout;
+reg [31:0] counter;
+always@(posedge clk)
+begin
+if(counter == (dividefactor
+-1))
+begin
+46
+counter <= 0;
+clkout <= ~clkout;
+end
+else
+counter <= counter + 32'd1;
+end
+endmodule
